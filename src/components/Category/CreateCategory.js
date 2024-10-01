@@ -1,62 +1,50 @@
-// src/components/Category/CreateCategory.js
-import React, { useState } from 'react';
-import { Button, Modal, Input, message } from 'antd';
-import { useMutation, gql, useQuery } from '@apollo/client';
+import React from 'react';
+import { Modal, Form, Input, Button } from 'antd';
+import { useMutation } from '@apollo/client';
 import { CREATE_CATEGORY, GET_CATEGORIES } from '../../graphql/categoryQueries';
- 
- 
 
 const CreateCategory = ({ open, setOpen, handleCancel }) => {
-  const [confirmLoading, setConfirmLoading] = useState(false);
-  const [categoryName, setCategoryName] = useState('');
-
-  // GraphQL mutation to create a new category
+  const [form] = Form.useForm();
   const [createCategory] = useMutation(CREATE_CATEGORY, {
-    update: (cache, { data: { createCategory } }) => {
-      const { categories } = cache.readQuery({ query: GET_CATEGORIES });
-      cache.writeQuery({
-        query: GET_CATEGORIES,
-        data: {
-          categories: [...categories, createCategory],
-        },
-      });
-    },
-    onCompleted: (data) => {
-      message.success(`Category "${data.createCategory.name}" created successfully!`);
-      setCategoryName(''); // Clear the input field
-      setOpen(false); // Close the modal
-      setConfirmLoading(false); // Reset the loading state
-    },
-    onError: (error) => {
-      message.error(`Failed to create category: ${error.message}`);
-      setConfirmLoading(false); // Reset the loading state
-    },
+    refetchQueries: [{ query: GET_CATEGORIES }],
   });
 
-  const handleOk = async () => {
-    if (!categoryName.trim()) {
-      message.error("Category name can't be empty");
-      return;
-    }
-
-    setConfirmLoading(true);
-    // Call the mutation to create a new category
-    await createCategory({ variables: { name: categoryName } });
+  const handleSubmit = (values) => {
+    createCategory({
+      variables: { name: values.name, imageUrl: values.imageUrl },
+    });
+    setOpen(false);
+    form.resetFields();
   };
 
   return (
     <Modal
-      title="Add New Category"
-      open={open}
-      onOk={handleOk}
-      confirmLoading={confirmLoading}
+      title="Add Category"
+      visible={open}
       onCancel={handleCancel}
+      footer={null}
     >
-      <Input
-        placeholder="Enter category name"
-        value={categoryName}
-        onChange={(e) => setCategoryName(e.target.value)}
-      />
+      <Form form={form} onFinish={handleSubmit}>
+        <Form.Item
+          name="name"
+          label="Category Name"
+          rules={[{ required: true, message: 'Please input category name!' }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          name="imageUrl"
+          label="Image URL"
+          rules={[{ required: true, message: 'Please input the image URL!' }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Add Category
+          </Button>
+        </Form.Item>
+      </Form>
     </Modal>
   );
 };

@@ -1,4 +1,3 @@
-// src/components/Category.js
 import React, { useState } from 'react';
 import { useQuery, gql, useMutation } from '@apollo/client';
 import { Table, Button, Card, Row, Col, Space, Popconfirm, message } from 'antd';
@@ -6,17 +5,14 @@ import CreateCategory from '../components/Category/CreateCategory';
 import UpdateCategory from '../components/Category/UpdateCategory';
 import { DELETE_CATEGORY, GET_CATEGORIES } from '../graphql/categoryQueries';
 
-
-
 const Category = () => {
   const { loading, error, data } = useQuery(GET_CATEGORIES);
-  const [open, setOpen] = useState(false); // Modal visibility state for adding
+  const [open, setOpen] = useState(false); // Modal visibility for adding
   const [updateOpen, setUpdateOpen] = useState(false); // Modal visibility for updating
   const [selectedCategory, setSelectedCategory] = useState(null); // Selected category for updating
 
-  // Mutation to delete a category
   const [deleteCategory] = useMutation(DELETE_CATEGORY, {
-    refetchQueries: [{ query: GET_CATEGORIES }], // Refetch categories after deletion
+    refetchQueries: [{ query: GET_CATEGORIES }],
     onCompleted: () => {
       message.success('Category deleted successfully!');
     },
@@ -25,22 +21,18 @@ const Category = () => {
     },
   });
 
-  const showAddModal = () => {
-    setOpen(true); // Open the modal for adding
-  };
-
+  const showAddModal = () => setOpen(true);
   const showUpdateModal = (category) => {
     setSelectedCategory(category);
-    setUpdateOpen(true); // Open the modal for updating
+    setUpdateOpen(true);
   };
-
   const handleCancel = () => {
-    setOpen(false); // Close the modal
-    setUpdateOpen(false); // Close the update modal
+    setOpen(false);
+    setUpdateOpen(false);
   };
 
   const handleDelete = (id) => {
-    deleteCategory({ variables: { id } }); // Call the delete mutation with the category ID
+    deleteCategory({ variables: { id } });
   };
 
   const columns = [
@@ -55,11 +47,12 @@ const Category = () => {
       key: "name",
     },
     {
-      title: "Products",
-      dataIndex: "products",
-      key: "products",
-      render: (products) => products?.map(product => product.name).join(", "),
+      title: "Image URL",
+      dataIndex: "imageUrl",
+      key: "imageUrl",
+      render: (text) => <a href={text} target="_blank" rel="noopener noreferrer">{text}</a>,
     },
+    
     {
       title: "Action",
       dataIndex: "action",
@@ -68,11 +61,11 @@ const Category = () => {
           <a onClick={() => showUpdateModal(category)}>Update</a>
           <Popconfirm
             title="Are you sure to delete this category?"
-            onConfirm={() => handleDelete(category.id)} // Confirm delete
+            onConfirm={() => handleDelete(category.id)}
             okText="Yes"
             cancelText="No"
           >
-            <a style={{ color: 'red' }}>Delete</a> {/* Delete link */}
+            <a style={{ color: 'red' }}>Delete</a>
           </Popconfirm>
         </Space>
       ),
@@ -86,6 +79,7 @@ const Category = () => {
     key: category.id,
     id: category.id,
     name: category.name,
+    imageUrl: category.imageUrl,
     products: category.products,
   }));
 

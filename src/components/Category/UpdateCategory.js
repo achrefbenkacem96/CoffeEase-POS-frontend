@@ -1,54 +1,59 @@
-// src/components/Category/UpdateCategory.js
-import React, { useState } from 'react';
-import { Button, Modal, Input, message } from 'antd';
-import { useMutation, gql } from '@apollo/client';
-import { GET_CATEGORIES, UPDATE_CATEGORY } from '../../graphql/categoryQueries';
-
- 
+import React, { useEffect } from 'react';
+import { Modal, Form, Input, Button } from 'antd';
+import { useMutation } from '@apollo/client';
+import { UPDATE_CATEGORY, GET_CATEGORIES } from '../../graphql/categoryQueries';
 
 const UpdateCategory = ({ open, setOpen, handleCancel, category }) => {
-  const [confirmLoading, setConfirmLoading] = useState(false);
-  const [categoryName, setCategoryName] = useState(category?.name || '');
-  console.log("🚀 ~ UpdateCategory ~ categoryName:", categoryName)
-
-  // GraphQL mutation to update the category
+  const [form] = Form.useForm();
   const [updateCategory] = useMutation(UPDATE_CATEGORY, {
     refetchQueries: [{ query: GET_CATEGORIES }],
-    onCompleted: (data) => {
-      message.success(`Category "${data.updateCategory.name}" updated successfully!`);
-      setOpen(false);
-      setConfirmLoading(false);
-    },
-    onError: (error) => {
-      message.error(`Failed to update category: ${error.message}`);
-      setConfirmLoading(false);
-    },
   });
 
-  const handleOk = async () => {
-    if (!categoryName.trim()) {
-      message.error("Category name can't be empty");
-      return;
+  useEffect(() => {
+    if (category) {
+      form.setFieldsValue({
+        name: category.name,
+        imageUrl: category.imageUrl,
+      });
     }
-    setCategoryName()
-    setConfirmLoading(true);
-    // Call the mutation to update the category
-    await updateCategory({ variables: { id: category.id, name: categoryName } });
+  }, [category]);
+
+  const handleSubmit = (values) => {
+    updateCategory({
+      variables: { id: category.id, name: values.name, imageUrl: values.imageUrl },
+    });
+    setOpen(false);
+    form.resetFields();
   };
 
   return (
     <Modal
       title="Update Category"
-      open={open}
-      onOk={handleOk}
-      confirmLoading={confirmLoading}
+      visible={open}
       onCancel={handleCancel}
+      footer={null}
     >
-      <Input
-        placeholder="Enter category name"
-        value={categoryName}
-        onChange={(e) => setCategoryName(e.target.value)}
-      />
+      <Form form={form} onFinish={handleSubmit}>
+        <Form.Item
+          name="name"
+          label="Category Name"
+          rules={[{ required: true, message: 'Please input category name!' }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          name="imageUrl"
+          label="Image URL"
+          rules={[{ required: true, message: 'Please input the image URL!' }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Update Category
+          </Button>
+        </Form.Item>
+      </Form>
     </Modal>
   );
 };
