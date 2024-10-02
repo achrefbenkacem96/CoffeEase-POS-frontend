@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { Table, Button, Card, Row, Col, Space, Popconfirm, message } from 'antd';
+import { Table, Button, Card, Row, Col, Space, Popconfirm, message, Select } from 'antd';
 import { DELETE_PRODUCT, GET_PRODUCTS } from '../graphql/productQueries';
+import { GET_CATEGORIES } from '../graphql/categoryQueries';
 import CreateProduct from '../components/Product/CreateProduct';
 import UpdateProduct from '../components/Product/UpdateProduct';
 
 const Product = () => {
   const { loading, error, data } = useQuery(GET_PRODUCTS);
+  const { data: categoryData } = useQuery(GET_CATEGORIES); // Charger les catégories
   const [open, setOpen] = useState(false);
   const [updateOpen, setUpdateOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null); // État pour la catégorie sélectionnée
 
   const [deleteProduct] = useMutation(DELETE_PRODUCT, {
     refetchQueries: [{ query: GET_PRODUCTS }],
@@ -38,6 +41,11 @@ const Product = () => {
   const handleDelete = (id) => {
     deleteProduct({ variables: { id } });
   };
+
+  // Filtrer les produits par catégorie sélectionnée
+  const filteredProducts = selectedCategory
+    ? data?.products.filter(product => product.category.id === selectedCategory)
+    : data?.products;
 
   const columns = [
     {
@@ -72,6 +80,16 @@ const Product = () => {
       render: (category) => category?.name,
     },
     {
+      title: 'Image URL',
+      dataIndex: 'imageUrl',
+      key: 'imageUrl',
+      render: (url) => (
+        <a href={url} target="_blank" rel="noopener noreferrer">
+          {url}
+        </a>
+      ),
+    },
+    {
       title: 'Action',
       dataIndex: 'action',
       render: (_, product) => (
@@ -93,7 +111,7 @@ const Product = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
-  const productData = data.products.map((product) => ({
+  const productData = filteredProducts?.map((product) => ({
     key: product.id,
     ...product,
   }));
@@ -107,13 +125,31 @@ const Product = () => {
             className="criclebox tablespace mb-24"
             title="Product Table"
             extra={
-              <Button type="primary" onClick={showAddModal}>
-                Add Product
-              </Button>
+              <>
+                <Button type="primary" onClick={showAddModal}>
+                  Add Product
+                </Button>
+                <Select
+                  placeholder="Filter by Category"
+                  style={{ width: 200, marginLeft: 20 }}
+                  onChange={(value) => setSelectedCategory(value)}
+                >
+                  {categoryData?.categories.map(category => (
+                    <Select.Option key={category.id} value={category.id}>
+                      {category.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </>
             }
           >
             <CreateProduct open={open} setOpen={setOpen} handleCancel={handleCancel} />
-            <UpdateProduct open={updateOpen} setOpen={setUpdateOpen} handleCancel={handleCancel} product={selectedProduct} />
+            <UpdateProduct
+              open={updateOpen}
+              setOpen={setUpdateOpen}
+              handleCancel={handleCancel}
+              product={selectedProduct}
+            />
             <Table columns={columns} dataSource={productData} pagination={false} />
           </Card>
         </Col>

@@ -1,14 +1,12 @@
 import React from 'react';
-import { Modal, Form, Input, InputNumber, Button, Select, Spin } from 'antd';
+import { Modal, Form, Input, InputNumber, Select } from 'antd';
 import { useMutation, useQuery } from '@apollo/client';
 import { ADD_PRODUCT, GET_PRODUCTS } from '../../graphql/productQueries';
 import { GET_CATEGORIES } from '../../graphql/categoryQueries';
 
-const { Option } = Select;
-
 const CreateProduct = ({ open, setOpen, handleCancel }) => {
   const [form] = Form.useForm();
-  const { loading, error, data: categoryData } = useQuery(GET_CATEGORIES);
+  const { data: categoryData } = useQuery(GET_CATEGORIES);
 
   const [addProduct] = useMutation(ADD_PRODUCT, {
     refetchQueries: [{ query: GET_PRODUCTS }],
@@ -25,40 +23,37 @@ const CreateProduct = ({ open, setOpen, handleCancel }) => {
     addProduct({ variables: { ...values } });
   };
 
-  if (loading) return <Spin />; // Show loading indicator
-  if (error) return <p>Error fetching categories: {error.message}</p>;
-
   return (
     <Modal
       title="Add Product"
-      visible={open}
+      open={open}
       onCancel={handleCancel}
-      footer={null}
+      onOk={() => form.submit()}
     >
       <Form form={form} layout="vertical" onFinish={onFinish}>
-        <Form.Item name="name" label="Product Name" rules={[{ required: true }]}>
+        <Form.Item label="Product Name" name="name" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
-        <Form.Item name="description" label="Description" rules={[{ required: true }]}>
+        <Form.Item label="Description" name="description" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
-        <Form.Item name="price" label="Price" rules={[{ required: true }]}>
-          <InputNumber min={0} />
+        <Form.Item label="Price" name="price" rules={[{ required: true }]}>
+          <InputNumber style={{ width: '100%' }} />
         </Form.Item>
-        <Form.Item name="stock" label="Stock" rules={[{ required: true }]}>
-          <InputNumber min={0} />
+        <Form.Item label="Stock" name="stock" rules={[{ required: true }]}>
+          <InputNumber style={{ width: '100%' }} />
         </Form.Item>
-        <Form.Item name="categoryId" label="Category" rules={[{ required: true }]}>
-          <Select placeholder="Select a category">
-            {categoryData.categories.map((category) => (
-              <Option key={category.id} value={category.id}>
-                {category.name}  
-              </Option>
+        <Form.Item label="Image URL" name="imageUrl">
+          <Input />
+        </Form.Item>
+        <Form.Item label="Category" name="categoryId" rules={[{ required: true }]}>
+          <Select>
+            {categoryData?.categories.map(category => (
+              <Select.Option key={category.id} value={category.id}>
+                {category.name}
+              </Select.Option>
             ))}
           </Select>
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit">Add Product</Button>
         </Form.Item>
       </Form>
     </Modal>
