@@ -35,7 +35,7 @@ export const UPDATE_CATEGORY = gql`
 `;
 
 export const DELETE_CATEGORY = gql`
-  mutation DeleteCategory($id: Int!) {
+  mutation DeleteCategory($id: Float!) {
     deleteCategory(id: $id) {
       id
     }

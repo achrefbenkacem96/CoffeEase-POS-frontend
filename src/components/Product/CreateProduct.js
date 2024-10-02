@@ -20,6 +20,7 @@ const CreateProduct = ({ open, setOpen, handleCancel }) => {
   });
 
   const onFinish = (values) => {
+    console.log("🚀 ~ onFinish ~ values:", values)
     addProduct({ variables: { ...values } });
   };
 

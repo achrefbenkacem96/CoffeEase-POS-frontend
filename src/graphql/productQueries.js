@@ -9,6 +9,7 @@ export const GET_PRODUCTS = gql`
       price
       stock
       createdAt
+      imageUrl
       category {
         id
         name
@@ -18,8 +19,8 @@ export const GET_PRODUCTS = gql`
 `;
 
 export const ADD_PRODUCT = gql`
-  mutation AddProduct($name: String!, $description: String!, $price: Float!, $stock: Float!, $categoryId: Float!) {
-    addProduct(name: $name, description: $description, price: $price, stock: $stock, categoryId: $categoryId) {
+  mutation AddProduct($name: String!, $description: String!, $imageUrl: String!, $price: Float!, $stock: Float!, $categoryId: Float!) {
+    addProduct(name: $name, description: $description, imageUrl: $imageUrl, price: $price, stock: $stock, categoryId: $categoryId) {
       id
       name
     }
@@ -27,8 +28,8 @@ export const ADD_PRODUCT = gql`
 `;
 
 export const UPDATE_PRODUCT = gql`
-  mutation UpdateProduct($id: Float!, $name: String!, $description: String!, $price: Float!, $stock: Float!, $categoryId: Int) {
-    updateProduct(id: $id, name: $name, description: $description, price: $price, stock: $stock, categoryId: $categoryId) {
+  mutation UpdateProduct($productId: Float!, $name: String!, $description: String!, $imageUrl: String!, $price: Float!, $stock: Float!, $categoryId: Float) {
+    updateProduct(productId: $productId, name: $name, description: $description, imageUrl: $imageUrl, price: $price, stock: $stock, categoryId: $categoryId) {
       id
       name
     }

@@ -23,6 +23,7 @@ import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink } from '@ap
 import { setContext } from '@apollo/client/link/context';
 import Category from "./pages/Category";
 import Product from "./pages/Product";
+import Order from "./pages/Order";
 
 // Configuration d'Apollo Client
 const httpLink = createHttpLink({
@@ -69,6 +70,9 @@ function App() {
             </Route>
             <Route exact path="/tables">
               {isAuthenticated() ? <Tables /> : <Redirect to="/sign-in" />}
+            </Route>
+            <Route exact path="/order">
+              {isAuthenticated() ? <Order /> : <Redirect to="/sign-in" />}
             </Route>
             <Route exact path="/category">
               {isAuthenticated() ? <Category /> : <Redirect to="/sign-in" />}
