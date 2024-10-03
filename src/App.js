@@ -6,7 +6,7 @@ import Rtl from "./pages/Rtl";
 import Profile from "./pages/Profile";
 import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
-import Main from "./components/layout/Main"; // Assurez-vous que le Main Layout est bien utilisé
+import Main from "./components/layout/Main";
 import Stock from "./pages/Stock";
 import Transaction from "./pages/Transaction"; 
 import Command from "./pages/Command";
@@ -24,6 +24,8 @@ import { setContext } from '@apollo/client/link/context';
 import Category from "./pages/Category";
 import Product from "./pages/Product";
 import Order from "./pages/Order";
+import { jwtDecode } from "jwt-decode"; // jwtDecode was being imported incorrectly
+import { useState, useEffect } from "react";
 
 // Configuration d'Apollo Client
 const httpLink = createHttpLink({
@@ -47,11 +49,21 @@ const client = new ApolloClient({
 
 function App() {
   const history = useHistory();
+  const [decodedToken, setDecodedToken] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const isAuthenticated = () => {
+  useEffect(() => {
     const token = localStorage.getItem("token");
-    return !!token;
-  };
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setDecodedToken(decoded);
+        setIsAuthenticated(!!token); // Only check once and set the state
+      } catch (error) {
+        console.error('Invalid token', error);
+      }
+    }
+  }, []);
 
   return (
     <ApolloProvider client={client}>
@@ -63,45 +75,70 @@ function App() {
           <Route exact path="/new_password" component={New_password} />
           <Route exact path="/reset_password" component={Reset_password} />
 
-          {/* Routes protégées */}
-          <Main> {/* Envelopper avec le layout Main pour avoir la navbar sur toutes les pages */}
-            <Route exact path="/dashboard">
-              {isAuthenticated() ? <Home /> : <Redirect to="/sign-in" />}
-            </Route>
-            <Route exact path="/tables">
-              {isAuthenticated() ? <Tables /> : <Redirect to="/sign-in" />}
-            </Route>
-            <Route exact path="/order">
-              {isAuthenticated() ? <Order /> : <Redirect to="/sign-in" />}
-            </Route>
-            <Route exact path="/category">
-              {isAuthenticated() ? <Category /> : <Redirect to="/sign-in" />}
-            </Route>
-            <Route exact path="/product">
-              {isAuthenticated() ? <Product /> : <Redirect to="/sign-in" />}
-            </Route>
-            <Route exact path="/billing">
-              {isAuthenticated() ? <Billing /> : <Redirect to="/sign-in" />}
-            </Route>
-            <Route exact path="/rtl">
-              {isAuthenticated() ? <Rtl /> : <Redirect to="/sign-in" />}
-            </Route>
-            <Route exact path="/profile">
-              {isAuthenticated() ? <Profile /> : <Redirect to="/sign-in" />}
-            </Route>
-            <Route exact path="/transaction">
-              {isAuthenticated() ? <Transaction /> : <Redirect to="/sign-in" />}
-            </Route>
-            <Route exact path="/stock">
-              {isAuthenticated() ? <Stock /> : <Redirect to="/sign-in" />}
-            </Route>
-            <Route exact path="/menu">
-              {isAuthenticated() ? <Menu /> : <Redirect to="/sign-in" />}
-            </Route>
-            <Route exact path="/command">
-              {isAuthenticated() ? <Command /> : <Redirect to="/sign-in" />}
-            </Route>
-          </Main>
+          {!decodedToken?.roles?.includes("Serveur") ? (
+            <Main>  
+              <Route exact path="/dashboard">
+                {isAuthenticated ? <Home /> : <Redirect to="/sign-in" />}
+              </Route> 
+              <Route exact path="/tables">
+                {isAuthenticated ? <Tables /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/order">
+                {isAuthenticated ? <Order /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/category">
+                {isAuthenticated ? <Category /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/product">
+                {isAuthenticated ? <Product /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/billing">
+                {isAuthenticated ? <Billing /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/rtl">
+                {isAuthenticated ? <Rtl /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/profile">
+                {isAuthenticated ? <Profile /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/transaction">
+                {isAuthenticated ? <Transaction /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/stock">
+                {isAuthenticated ? <Stock /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/menu">
+                {isAuthenticated ? <Menu /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/command">
+                {isAuthenticated ? <Command /> : <Redirect to="/sign-in" />}
+              </Route>
+            </Main>
+          ) : (
+            <Main>  
+              <Route exact path="/dashboard">
+                {isAuthenticated ? <Home /> : <Redirect to="/sign-in" />}
+              </Route> 
+              <Route exact path="/tables">
+                {isAuthenticated ? <Tables /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/order">
+                {isAuthenticated ? <Order /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/rtl">
+                {isAuthenticated ? <Rtl /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/profile">
+                {isAuthenticated ? <Profile /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/stock">
+                {isAuthenticated ? <Stock /> : <Redirect to="/sign-in" />}
+              </Route>
+              <Route exact path="/menu">
+                {isAuthenticated ? <Menu /> : <Redirect to="/sign-in" />}
+              </Route>
+            </Main>
+          )}
 
           {/* Redirection par défaut */}
           <Redirect from="*" to="/dashboard" />

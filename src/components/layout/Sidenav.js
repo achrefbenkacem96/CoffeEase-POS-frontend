@@ -14,11 +14,27 @@
 import { Menu, Button } from "antd";
 import { NavLink, useLocation } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
+import { jwtDecode } from "jwt-decode";
+import { useEffect, useState } from "react";
 
 function Sidenav({ color }) {
   const { pathname } = useLocation();
   const page = pathname.replace("/", "");
+  const [decodedToken, setDecodedToken] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setDecodedToken(decoded);
+        setIsAuthenticated(!!token); // Only check once and set the state
+      } catch (error) {
+        console.error('Invalid token', error);
+      }
+    }
+  }, []);
   const dashboard = [
     <svg
       width="20"
@@ -295,6 +311,35 @@ function Sidenav({ color }) {
             <span className="label">Dashboard</span>
           </NavLink>
         </Menu.Item>
+       { decodedToken?.roles?.includes("Serveur") ? <>
+       <Menu.Item key="102">
+          <NavLink to="/menu">
+            <span
+              className="icon"
+              style={{
+                background: page === "menu" ? color : "",
+              }}
+            >
+              {menu}
+            </span>
+            <span className="label">Menu</span>
+          </NavLink>
+        </Menu.Item>
+        <Menu.Item key="2">
+          <NavLink to="/tables">
+            <span
+              className="icon"
+              style={{
+                background: page === "tables" ? color : "",
+              }}
+            >
+              {tables}
+            </span>
+            <span className="label">Tables</span>
+          </NavLink>
+        </Menu.Item>
+       </>:
+       <>
         <Menu.Item key="102">
           <NavLink to="/menu">
             <span
@@ -347,19 +392,7 @@ function Sidenav({ color }) {
             <span className="label">Order</span>
           </NavLink>
         </Menu.Item>
-        {/* <Menu.Item key="4">
-          <NavLink to="/billing">
-            <span
-              className="icon"
-              style={{
-                background: page === "billing" ? color : "",
-              }}
-            >
-              {billing}
-            </span>
-            <span className="label">Billing</span>
-          </NavLink>
-        </Menu.Item> */}
+        
         <Menu.Item key="5">
           <NavLink to="/stock">
             <span
@@ -428,7 +461,8 @@ function Sidenav({ color }) {
             <span className="label">Profile</span>
           </NavLink>
         </Menu.Item>
-       
+       </>
+       }
       </Menu>
       
     </>
