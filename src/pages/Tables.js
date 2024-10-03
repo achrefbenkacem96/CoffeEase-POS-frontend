@@ -1,193 +1,114 @@
 import React, { useState } from 'react';
-import { Row, Col, Button, Table, Card, Radio, Avatar, Typography, message } from 'antd';
-import { CheckOutlined, DollarOutlined, CreditCardOutlined, GiftOutlined, DeleteOutlined, PlusOutlined, MinusOutlined, SearchOutlined } from '@ant-design/icons';
-
-const { Title } = Typography;
-
-const tables = [
-  { key: 'T1', etat:true}, { key: 'T2', etat:true }, { key: 'T3', etat:false}, { key: 'T4', etat:true }, { key: 'T5', etat:true},
-  { key: 'T6', etat:false}, { key: 'T7', etat:true }, { key: 'T8', etat:false }, { key: 'T9', etat:true }, { key: 'T10', etat:false },
-  { key: 'T11', etat:true }, { key: 'T12', etat:false }, { key: 'T13', etat:true }, { key: 'T14', etat:false }, { key: 'T15', etat:true },
-  { key: 'T16', etat:true }, { key: 'T17', etat:true }, { key: 'T18', etat:true }, { key: 'T19', etat:true }, { key: 'T20', etat:true },
-  { key: 'T21', etat:false }, { key: 'T22', etat:false }
-];
-
-const initialOrderData = [
-  { key: 1, item: 'CRISPY STRIPS MEAL', price: 14.99, quantity: 2 },
-  { key: 2, item: 'LIGHT STRIPS BOX', price: 5.99, quantity: 1 },
-  { key: 3, item: 'ZINGER BOX', price: 8.99, quantity: 1 },
-  { key: 4, item: 'MIGHTY ZINGER', price: 7.99, quantity: 1 },
-];
+import { Row, Col, Button, Card, Table, message, Popconfirm } from 'antd';
+import { useQuery, useMutation } from '@apollo/client';
+import { GET_TABLES, CREATE_TABLE, DELETE_TABLE, UPDATE_TABLE_STATUS } from '../graphql/tableQueries';
+import { GET_ORDERS_BY_TABLE } from '../graphql/orderQueries'; // Requête pour obtenir les commandes par table
+import { PlusOutlined, MinusOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const Tables = () => {
   const [selectedTable, setSelectedTable] = useState(null);
-  const [orderData, setOrderData] = useState(initialOrderData);
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [orderData, setOrderData] = useState([]);
 
-  const onTableSelect = (tableKey) => {
-    setSelectedTable(tableKey);
-    message.success(`Table ${tableKey} selected`);
+  // Fetch tables
+  const { loading: tablesLoading, error: tablesError, data: tablesData } = useQuery(GET_TABLES);
+
+  // Mutation pour créer une table
+  const [createTable] = useMutation(CREATE_TABLE, {
+    refetchQueries: [{ query: GET_TABLES }],
+    onCompleted: () => message.success('Table added successfully'),
+    onError: (error) => message.error(`Failed to add table: ${error.message}`)
+  });
+
+  // Mutation pour supprimer une table
+  const [deleteTable] = useMutation(DELETE_TABLE, {
+    refetchQueries: [{ query: GET_TABLES }],
+    onCompleted: () => message.success('Table deleted successfully'),
+    onError: (error) => message.error(`Failed to delete table: ${error.message}`)
+  });
+
+  // Mutation pour mettre à jour le statut d'une table
+  const [updateTableStatus] = useMutation(UPDATE_TABLE_STATUS, {
+    refetchQueries: [{ query: GET_TABLES }],
+    onCompleted: () => message.success('Table status updated'),
+    onError: (error) => message.error(`Failed to update table: ${error.message}`)
+  });
+
+  // Fetch orders by table
+  const { loading: ordersLoading, error: ordersError, data: ordersData, refetch: refetchOrders } = useQuery(GET_ORDERS_BY_TABLE, {
+    variables: { tableId: selectedTable },
+    skip: !selectedTable, // Ne fait la requête que si une table est sélectionnée
+  });
+
+  // Ajouter une table
+  const handleAddTable = () => {
+    const tableNumber = tablesData?.tables.length + 1 || 1; // Attribuer un numéro de table automatiquement
+    createTable({ variables: { number: tableNumber, status: 'AVAILABLE' } });
   };
 
-  const onAddItem = (key) => {
-    const updatedOrder = orderData.map((item) => {
-      if (item.key === key) {
-        return { ...item, quantity: item.quantity + 1 };
-      }
-      return item;
-    });
-    setOrderData(updatedOrder);
+  // Supprimer une table
+  const handleDeleteTable = (id) => {
+    deleteTable({ variables: { id } });
   };
 
-  const onRemoveItem = (key) => {
-    const updatedOrder = orderData
-      .map((item) => {
-        if (item.key === key && item.quantity > 1) {
-          return { ...item, quantity: item.quantity - 1 };
-        }
-        return item;
-      })
-      .filter(item => item.quantity > 0); // Remove if quantity is 0
-    setOrderData(updatedOrder);
+  // Sélectionner une table et afficher les commandes associées
+  const handleTableSelect = (table) => {
+    setSelectedTable(table.id);
+    refetchOrders({ tableId: table.id });
   };
 
-  const orderColumns = [
-    {
-      title: 'Item',
-      dataIndex: 'item',
-    },
-    {
-      title: 'Price',
-      dataIndex: 'price',
-      render: (price) => `$${price.toFixed(2)}`,
-    },
-    {
-      title: 'Qty',
-      dataIndex: 'quantity',
-      render: (quantity, record) => (
-        <>
-         <Button
-          style={{ marginRight: 8,padding:1}}
-          type="default"
-          icon={<MinusOutlined />}
-          onClick={() => onRemoveItem(record.key)}
-        />
-        {quantity} 
-        <Button
-          style={{ marginRight: 8,padding:1}}
-          type="default"
-          icon={<PlusOutlined  />}
-          onClick={() => onAddItem(record.key)}
-        />
-        </>
-      ),
-    },
-    {
-      title: 'Actions',
-      render: (_, record) => (
-        <Button
-        style={{ padding:1}}
-
-          type="primary"
-          icon={<DeleteOutlined  />}
-          onClick={() => onRemoveItem(record.key)}
-          danger
-         />
-      ),
-    },
+  const columns = [
+    { title: 'Product Name', dataIndex: ['product', 'name'], key: 'name' },
+    { title: 'Quantity', dataIndex: 'quantity', key: 'quantity' },
+    { title: 'Status', dataIndex: 'status', key: 'status' }
   ];
 
-  const calculateTotal = () => {
-    const subTotal = orderData.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const tax = subTotal * 0.1;
-    const total = subTotal + tax;
-    return { subTotal, tax, total };
-  };
+  if (tablesLoading) return <p>Loading tables...</p>;
+  if (tablesError) return <p>Error loading tables: {tablesError.message}</p>;
 
-  const { subTotal, tax, total } = calculateTotal();
+  const orders = ordersData?.orders || []; // Utilisation de "?" pour éviter l'erreur si ordersData est indéfini
 
   return (
     <Row gutter={22}>
       {/* Tables List */}
       <Col span={12}>
-        <Card title="Tables List" bordered={false}>
+        <Card title="Tables List" bordered={false} extra={<Button type="primary" onClick={handleAddTable}>Add Table</Button>}>
           <Row gutter={[12, 12]}>
-            {tables.map((table) => (
-              <Col span={4} key={table.key}>
-                {table.etat ?
+            {tablesData.tables.map((table) => (
+              <Col span={4} key={table.id}>
                 <Button
                   shape="circle"
                   size="large"
-                  onClick={() => onTableSelect(table.key)}
-                  type={selectedTable === table.key ? 'primary' : 'default'}
-                  className={selectedTable === table.key ? 'selected-table' : ''}
-                  style={{backgroundColor: "#40FF40"}}
-
+                  type={table.status === 'OCCUPIED' ? 'danger' : 'primary'}
+                  onClick={() => handleTableSelect(table)}
                 >
-                  {table.key}
-                </Button> :
-                <Button
-                  shape="circle"
-                  size="large"
-                   type={'primary'}
-                  className={selectedTable === table.key ? 'selected-table' : ''}
-                  disabled={true}
-                  style={{backgroundColor: "#FF3131"}}
-                  danger
+                  T{table.number}
+                </Button>
+                <Popconfirm
+                  title="Are you sure to delete this table?"
+                  onConfirm={() => handleDeleteTable(table.id)}
+                  okText="Yes"
+                  cancelText="No"
                 >
-                  {table.key}
-                </Button>}
+                  <Button danger icon={<DeleteOutlined />} />
+                </Popconfirm>
               </Col>
             ))}
           </Row>
         </Card>
       </Col>
-    
+
       {/* Order and Payment Section */}
       <Col span={12}>
-        <Card
-          title={`Order List ${selectedTable || ''}`}
-          extra={
-            <Button type="primary" onClick={() => message.success('Payment processed')}>
-              Pay ${total.toFixed(2)}
-            </Button>
-          }
-        >
-          <Table
-            columns={orderColumns}
-            dataSource={orderData}
-            pagination={false}
-            summary={() => (
-              <>
-                <Table.Summary.Row>
-                  <Table.Summary.Cell colSpan={2}>Sub Total</Table.Summary.Cell>
-                  <Table.Summary.Cell>{`$${subTotal.toFixed(2)}`}</Table.Summary.Cell>
-                </Table.Summary.Row>
-                <Table.Summary.Row>
-                  <Table.Summary.Cell colSpan={2}>Tax (10%)</Table.Summary.Cell>
-                  <Table.Summary.Cell>{`$${tax.toFixed(2)}`}</Table.Summary.Cell>
-                </Table.Summary.Row>
-                <Table.Summary.Row>
-                  <Table.Summary.Cell colSpan={2}>Total</Table.Summary.Cell>
-                  <Table.Summary.Cell>{`$${total.toFixed(2)}`}</Table.Summary.Cell>
-                </Table.Summary.Row>
-              </>
-            )}
-          />
-
-          {/* <Card title="Payment Method">
-            <Radio.Group value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-              <Radio.Button value="cash">
-                <DollarOutlined /> Cash
-              </Radio.Button>
-              <Radio.Button value="card">
-                <CreditCardOutlined /> Card
-              </Radio.Button>
-              <Radio.Button value="gift">
-                <GiftOutlined /> Gift
-              </Radio.Button>
-            </Radio.Group>
-          </Card> */}
+        <Card title={`Order List for Table ${selectedTable || ''}`}>
+          {ordersLoading ? (
+            <p>Loading orders...</p>
+          ) : ordersError ? (
+            <p>Error loading orders: {ordersError.message}</p>
+          ) : orders.length === 0 ? (
+            <p>No orders for this table</p>
+          ) : (
+            <Table columns={columns} dataSource={orders} pagination={false} />
+          )}
         </Card>
       </Col>
     </Row>

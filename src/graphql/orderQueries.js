@@ -23,7 +23,7 @@ export const GET_ORDERS = gql`
 
 // Query to get a single order by ID
 export const GET_ORDER_BY_ID = gql`
-  query GetOrderById($id: Int!) {
+  query GetOrderById($id: Float!) {
     getOrderById(id: $id) {
       id
       status
@@ -89,6 +89,19 @@ export const DELETE_ORDER = gql`
   mutation DeleteOrder($id: Int!) {
     deleteOrder(id: $id) {
       id
+    }
+  }
+`;
+
+export const GET_ORDERS_BY_TABLE = gql`
+  query GetOrdersByTable($tableId: Int!) {
+    orders(tableId: $tableId) {
+      id
+      product {
+        name
+      }
+      quantity
+      status
     }
   }
 `;
