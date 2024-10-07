@@ -31,7 +31,7 @@ export const DELETE_TABLE = gql`
 `;
 
 export const UPDATE_TABLE_STATUS = gql`
-  mutation UpdateTableStatus($id: Float!, $status: String!) {
+  mutation UpdateTableStatus($id: Int!, $status: String!) {
     updateTableStatus(id: $id, status: $status) {
       id
       number

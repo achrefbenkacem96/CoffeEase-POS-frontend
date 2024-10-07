@@ -14,7 +14,7 @@ import Reset_password from "./pages/Reset_password";
 import New_password from "./pages/New_password";
 import Menu from "./pages/Menu";
 
-import "antd/dist/antd.css";
+//import "antd/dist/antd.css";
 import "./assets/styles/main.css";
 import "./assets/styles/responsive.css";
 import 'react-multi-carousel/lib/styles.css';

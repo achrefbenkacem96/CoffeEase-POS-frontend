@@ -98,10 +98,29 @@ export const GET_ORDERS_BY_TABLE = gql`
     orders(tableId: $tableId) {
       id
       product {
+        id
         name
+        price
+        description
       }
       quantity
       status
     }
   }
 `;
+
+
+// Mutation to update order quantity
+export const UPDATE_ORDER_QUANTITY = gql`
+  mutation UpdateOrderQuantity($orderId: Int!, $quantity: Int!) {
+    updateOrderQuantity(orderId: $orderId, quantity: $quantity) {
+      id
+      quantity
+      product {
+        name
+        price
+      }
+    }
+  }
+`;
+
