@@ -38,7 +38,7 @@ export default function NewPassword() {
     <div className="layout-default ant-layout layout-sign-up">
       <Header>
         <div className="header-col header-brand">
-          <h5>Muse Dashboard</h5>
+          <h5>CoffeEase POS</h5>
         </div>
       </Header>
 
@@ -71,7 +71,7 @@ export default function NewPassword() {
 
       <Footer>
         <p className="copyright">
-          Copyright © 2021 Muse by <a href="#pablo">Creative Tim</a>.
+        Copyright © 2024 CoffeEase POS by <a href="#pablo">Raed ABDERRAHIM</a>.
         </p>
       </Footer>
     </div>

@@ -7,6 +7,7 @@ export const GET_ORDERS = gql`
       id
       status
       quantity
+      createdAt
       product {
         id
         name
@@ -16,14 +17,14 @@ export const GET_ORDERS = gql`
         id
         number
       }
-      createdAt
     }
   }
 `;
 
+
 // Query to get a single order by ID
 export const GET_ORDER_BY_ID = gql`
-  query GetOrderById($id: Float!) {
+  query GetOrderById($id: Int!) {
     getOrderById(id: $id) {
       id
       status
@@ -124,3 +125,17 @@ export const UPDATE_ORDER_QUANTITY = gql`
   }
 `;
 
+export const CREATE_PAYMENT = gql`
+  mutation CreatePayment($orderId: Float!, $amount: Float!, $paymentType: String!) {
+    createPayment(orderId: $orderId, amount: $amount, paymentType: $paymentType) {
+      id
+      amount
+      status
+      paymentType
+      order {
+        id
+        status
+      }
+    }
+  }
+`;

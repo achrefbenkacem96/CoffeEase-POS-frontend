@@ -55,7 +55,7 @@ export default function SignIn() {
       <Layout className="layout-default layout-signin">
         <Header>
           <div className="header-col header-brand">
-            <h5>Muse Dashboard</h5>
+            <h5>CoffeEase POS</h5>
           </div>
         </Header>
         <Content className="signin">
@@ -123,7 +123,7 @@ export default function SignIn() {
         </Content>
         <Footer>
           <p className="copyright">
-            Copyright © 2021 Muse by <a href="#pablo">Creative Tim</a>.
+            Copyright © 2024 CoffeEase POS by <a href="#pablo">Raed ABDERRAHIM</a>.
           </p>
         </Footer>
       </Layout>
