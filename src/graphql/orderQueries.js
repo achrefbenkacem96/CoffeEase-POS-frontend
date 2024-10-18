@@ -106,9 +106,14 @@ export const GET_ORDERS_BY_TABLE = gql`
       }
       quantity
       status
+      table {
+        id
+        number
+      }
     }
   }
 `;
+
 
 
 // Mutation to update order quantity

@@ -1,16 +1,17 @@
 import React, { useState } from "react";
-import { Row, Col, Card, Radio, Table, Button, Typography, Modal, Input, message } from "antd";
+import { Row, Col, Card, Table, Button, Modal, Input, message, Select } from "antd";
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_ORDERS_BY_TABLE, UPDATE_ORDER_STATUS, UPDATE_ORDER_QUANTITY } from "../graphql/orderQueries";  // Importer les mutations
+import { GET_ORDERS_BY_TABLE, UPDATE_ORDER_STATUS, UPDATE_ORDER_QUANTITY } from "../graphql/orderQueries";  
+import { GET_TABLES } from "../graphql/tableQueries";
 
-const { Title } = Typography;
+const { Option } = Select;
 
 const columns = (onEdit, onCancel) => [
   {
     title: "ID de commande",
     dataIndex: "orderId",
     key: "orderId",
-    width: "20%",
+    width: "15%",
   },
   {
     title: "Table",
@@ -22,7 +23,7 @@ const columns = (onEdit, onCancel) => [
     title: "Nom du produit",
     dataIndex: "productName",
     key: "productName",
-    width: "30%",
+    width: "25%",
   },
   {
     title: "Quantité",
@@ -50,44 +51,47 @@ const columns = (onEdit, onCancel) => [
     render: (_, record) => (
       <>
         <Button onClick={() => onEdit(record)}>Modifier</Button> |{" "}
-        <Button type="danger" onClick={() => onCancel(record.id)}>Annuler</Button>
+        <Button type="danger" onClick={() => onCancel(record.key)}>Annuler</Button>
       </>
     ),
   },
 ];
 
 function Order() {
-  const [selectedTableId, setSelectedTableId] = useState(null);  // Définir l'ID de la table sélectionnée
-  const [isModalVisible, setIsModalVisible] = useState(false);  // Gestion de la modale d'édition
-  const [editOrder, setEditOrder] = useState(null);  // La commande à éditer
-  const [newQuantity, setNewQuantity] = useState(0);  // Nouvelle quantité pour l'édition
+  const [selectedTableId, setSelectedTableId] = useState(null);  // Sélection de la table
+  const [isModalVisible, setIsModalVisible] = useState(false);  // Modale d'édition
+  const [editOrder, setEditOrder] = useState(null);  // Commande à éditer
+  const [newQuantity, setNewQuantity] = useState(0);  // Nouvelle quantité
 
-  // Requête pour récupérer les commandes selon l'ID de la table sélectionnée
-  const { loading, error, data } = useQuery(GET_ORDERS_BY_TABLE, {
-    variables: { tableId: selectedTableId },
-    skip: !selectedTableId,  // Ne pas exécuter si aucune table n'est sélectionnée
-  });
-
-  // Mutation pour mettre à jour le statut d'une commande
+  // Mutation pour annuler la commande
   const [updateOrderStatus] = useMutation(UPDATE_ORDER_STATUS, {
     onCompleted: () => message.success("Commande annulée"),
     onError: () => message.error("Erreur lors de l'annulation"),
   });
 
-  // Mutation pour mettre à jour la quantité d'une commande
+  // Mutation pour modifier la quantité
   const [updateOrderQuantity] = useMutation(UPDATE_ORDER_QUANTITY, {
     onCompleted: () => message.success("Quantité modifiée avec succès"),
     onError: () => message.error("Erreur lors de la modification de la quantité"),
   });
 
-  // Gérer la modification d'une commande
+  // Requête pour obtenir les commandes par table seulement si `tableId` est sélectionné
+  const { loading, error, data } = useQuery(GET_ORDERS_BY_TABLE, {
+    variables: { tableId: selectedTableId },
+    skip: !selectedTableId, // Ne pas exécuter tant qu'une table n'est pas sélectionnée
+  });
+
+  // Requête pour obtenir les tables
+  const { data: tablesData } = useQuery(GET_TABLES);
+
+  // Modifier la commande
   const handleEdit = (order) => {
     setEditOrder(order);
     setNewQuantity(order.quantity);
     setIsModalVisible(true);
   };
 
-  // Appliquer les modifications de quantité
+  // Sauvegarder la modification de quantité
   const handleEditSave = () => {
     updateOrderQuantity({ variables: { orderId: editOrder.key, quantity: newQuantity } });
     setIsModalVisible(false);
@@ -98,7 +102,7 @@ function Order() {
     updateOrderStatus({ variables: { id: orderId, status: "Canceled" } });
   };
 
-  // Transfo des données pour le tableau
+  // Transformation des données
   const transformedData = data?.orders.map((order) => ({
     key: order.id,
     orderId: <span>{`ORD-${order.id}`}</span>,
@@ -108,22 +112,12 @@ function Order() {
     orderTime: <span>{new Date(order.createdAt).toLocaleString()}</span>,
     status: (
       <Button
-        type={
-          order.status === "Confirmed"
-            ? "primary"
-            : order.status === "Canceled"
-            ? "danger"
-            : "default"
-        }
+        type={order.status === "Confirmed" ? "primary" : order.status === "Canceled" ? "danger" : "default"}
       >
         {order.status}
       </Button>
     ),
   }));
-
-  const onTableSelect = (tableId) => {
-    setSelectedTableId(tableId);  // Définir l'ID de la table sélectionnée
-  };
 
   return (
     <div className="tabled">
@@ -134,11 +128,18 @@ function Order() {
             className="criclebox tablespace mb-24"
             title="Table des commandes"
             extra={
-              <Radio.Group onChange={(e) => onTableSelect(e.target.value)} defaultValue={null}>
-                <Radio.Button value={1}>Table 1</Radio.Button>
-                <Radio.Button value={2}>Table 2</Radio.Button>
-                <Radio.Button value={3}>Table 3</Radio.Button>
-              </Radio.Group>
+              <Select
+                style={{ width: "200px" }}
+                placeholder="Sélectionner une table"
+                onChange={setSelectedTableId} // Permet la sélection d'une table
+                allowClear
+              >
+                {tablesData?.tables.map((table) => (
+                  <Option key={table.id} value={table.id}>
+                    Table {table.number}
+                  </Option>
+                ))}
+              </Select>
             }
           >
             <div className="table-responsive">
@@ -147,8 +148,10 @@ function Order() {
                 dataSource={transformedData}
                 pagination={false}
                 className="ant-border-space"
+                loading={loading}
               />
             </div>
+            {error && <p>Erreur lors du chargement des commandes : {error.message}</p>}
           </Card>
         </Col>
       </Row>

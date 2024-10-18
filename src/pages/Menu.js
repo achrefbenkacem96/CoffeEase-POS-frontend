@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Card, message, Badge, Button, Space, Row, Col, Select } from "antd";
-import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
+import { MinusOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useMutation, useQuery } from "@apollo/client";
 import Carousel from "react-multi-carousel";
 import { GET_PRODUCTS } from "../graphql/productQueries";
@@ -146,6 +146,11 @@ const Menu = () => {
     ));
   };
 
+  const handleRemoveFromCart = (itemId) => {
+    setCart(cart.filter((item) => item.id !== itemId)); // Remove the item from the cart
+    message.success("Item removed from your cart.");
+  };
+
   const handleAssignTable = async () => {
     if (!selectedTable) {
       message.warning("Please select a table.");
@@ -235,6 +240,12 @@ const Menu = () => {
                       style={{ marginRight: 8, padding: 1 }}
                       icon={<PlusOutlined />} 
                       onClick={() => handleIncrement(item.id)} // Increment quantity
+                    />
+                    <Button 
+                      type="default" 
+                      style={{ marginTop: 8, padding: 1 }}
+                      icon={<DeleteOutlined />} 
+                      onClick={() => handleRemoveFromCart(item.id)} // Remove item from cart
                     />
                   </div>
                 </div>
