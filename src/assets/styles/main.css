@@ -3039,3 +3039,28 @@ section.ant-layout.ant-layout-has-sider.layout-dashboard.layout-profile
 .text-shadow {
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);  
 }
+.logout-container {
+  display: flex;                     /* Align items horizontally */
+  align-items: center;               /* Center vertically */
+  cursor: pointer;                   /* Change cursor on hover */
+  padding: 10px 15px;               /* Add padding around the button */
+  background-color: #f0f0f0;        /* Light gray background */
+  border-radius: 5px;               /* Rounded corners */
+  transition: background-color 0.3s; /* Smooth transition for background color */
+  font-size: 16px;                  /* Font size for the label */
+}
+
+.logout-container:hover {
+  background-color: #e0e0e0;        /* Darker gray on hover */
+}
+
+.icon {
+  margin-right: 8px;                /* Space between icon and label */
+  display: flex;                    /* Center icon vertically */
+  align-items: center;              /* Center icon vertically */
+}
+
+.label {
+  color: #333;                      /* Darker text color */
+  font-weight: bold;                /* Bold text */
+}

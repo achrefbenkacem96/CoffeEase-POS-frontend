@@ -5,55 +5,58 @@ import { GET_SALES_REPORT } from '../../graphql/reportQueries';
 import { GET_PRODUCTS } from '../../graphql/productQueries';
 
 const SalesReport = () => {
-  // Récupération des rapports de vente
+  // Fetch sales report
   const { loading: salesLoading, error: salesError, data: salesData } = useQuery(GET_SALES_REPORT);
   
-  // Récupération des données des produits
+  // Fetch product data
   const { loading: productsLoading, error: productsError, data: productsData } = useQuery(GET_PRODUCTS);
+  console.log("🚀 ~ SalesReport ~ productsData:", productsData)
 
+  // Loading state
   if (salesLoading || productsLoading) return <p>Chargement des rapports de vente...</p>;
+  
+  // Error handling
   if (salesError || productsError) return <p>Erreur: {salesError?.message || productsError?.message}</p>;
 
-  // Traitement des données pour le graphique
+  // Log sales data for debugging
+  console.log('Sales Data:', salesData?.getSalesReports);
+  
+  // Processing data for the chart
   const chartData = salesData?.getSalesReports?.map((report) => {
     const product = productsData?.products?.find(product => product.id === report.productId);
+    
+    // Log product data for debugging
+    console.log('Product Data:', product);
+    
     return {
       productName: product ? product.name : `Produit ${report.productId}`,
-      quantitySold: report.quantitySold,
-      totalRevenue: report.totalRevenue,
-    };
+      value: `${report.quantitySold ?? 0} unités, ${ report.totalRevenue ?? 0} € de revenu`,  // Default to 0 if quantitySold is null
+     };
   }) || [];
 
+  // Check if chart data is empty
   if (chartData.length === 0) {
     return <p>Aucun rapport de vente disponible pour l'instant.</p>;
   }
+  console.log("🚀 ~ SalesReport ~ chartData:", chartData)
 
-  // Configuration du graphique
+  // Configuration for the chart
   const config = {
     data: chartData,
-    xField: 'productName',
-    yField: 'quantitySold',
-    seriesField: 'productName',
-    legend: { position: 'top-left' },
-    barWidthRatio: 0.5, // Réduction de la largeur de la barre pour plus de visibilité
+    xField: 'productName',         // Name of the product on the X-axis
+    yField: 'value',        // Quantities sold on the Y-axis
     colorField: 'productName',
-    xAxis: {
-      label: {
-        autoRotate: true, // Rotation des labels pour une meilleure lisibilité
-      },
+ 
+    interaction: {
+      elementSelect: true,
     },
-    yAxis: {
-      title: {
-        text: 'Quantité Vendue', // Ajout d'un titre pour l'axe des Y
-      },
-    },
-    tooltip: {
-      fields: ['productName', 'quantitySold', 'totalRevenue'],
-      formatter: (datum) => ({
-        name: datum.productName,
-        value: `${datum.quantitySold} unités, ${datum.totalRevenue} € de revenu`,
-      }),
-    },
+    // axis: {
+    //   y: {
+    //     labelFormatter: '0',
+    //   },
+    // },
+
+     
   };
 
   return (

@@ -5,11 +5,25 @@ import { GET_TABLES, CREATE_TABLE, DELETE_TABLE, UPDATE_TABLE_STATUS } from '../
 import { GET_ORDERS_BY_TABLE, UPDATE_ORDER_QUANTITY, CREATE_PAYMENT } from '../graphql/orderQueries';  
 import { PlusOutlined, MinusOutlined, DeleteOutlined } from '@ant-design/icons';
 import jsPDF from 'jspdf';
+import tableimg from "../assets/images/table.png";
+import { jwtDecode } from "jwt-decode";
 
 const Tables = () => {
-  const [selectedTable, setSelectedTable] = useState(null);
+  const [selectedTable, setSelectedTable] = useState();
+  const [status, setStatus] = useState("PENDING");
   const [totalAmount, setTotalAmount] = useState(0);
-
+  const [decodedToken, setDecodedToken] = useState(null);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setDecodedToken(decoded);
+      } catch (error) {
+        console.error('Invalid token', error);
+      }
+    }
+  }, []);
   const { loading: tablesLoading, error: tablesError, data: tablesData, refetch: refetchTables } = useQuery(GET_TABLES);
   const [createTable] = useMutation(CREATE_TABLE, {
     refetchQueries: [{ query: GET_TABLES }],
@@ -47,7 +61,7 @@ const Tables = () => {
   });
 
   const { loading: ordersLoading, error: ordersError, data: ordersData, refetch: refetchOrders } = useQuery(GET_ORDERS_BY_TABLE, {
-    variables: { tableId: selectedTable },
+    variables: { tableId: selectedTable, status: status },
     skip: !selectedTable,
   });
 
@@ -76,7 +90,7 @@ const Tables = () => {
 
   const handleTableSelect = (table) => {
     setSelectedTable(table.id);
-    refetchOrders({ tableId: table.id });
+    refetchOrders();
   };
 
   const handleQuantityChange = (orderId, quantityChange) => {
@@ -147,34 +161,57 @@ const Tables = () => {
   return (
     <Row gutter={22}>
       <Col span={12}>
-        <Card title="Tables List" bordered={false} extra={<Button type="primary" onClick={handleAddTable}>Add Table</Button>}>
+        <Card title="Tables List" bordered={false} extra={!decodedToken?.roles?.includes("Serveur")  &&<Button type="primary" onClick={handleAddTable}>Add Table</Button>}>
           <Row gutter={[12, 12]}>
             {sortedTables.map((table) => (
-              <Col span={4} key={table.id}>
+              <Col span={6}                   onClick={() => handleTableSelect(table)}
+              key={table.id} style={{ textAlign: 'center', marginBottom: '20px' }}>
+              {/* Table Name */}
+              <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '10px' }}>
+                Table {table.number}
+              </div>
+            
+              {/* Table Image */}
+              <img
+                src={tableimg}  // Replace with the actual path to the image
+                alt={`Table ${table.number}`}
+                style={{
+                  width: '80px', // Adjust size as needed
+                  height: '80px',
+                  marginBottom: '10px',
+                }}
+              />
+            
+              {/* Button 1: Update Table Status */}
+              <Button
+                type="primary"
+                onClick={() => handleUpdateTableStatus(table.id, table.status)}
+                style={{
+                  marginBottom: '5px',
+                  backgroundColor: table.status === 'OCCUPIED' ? '#ff4d4f' : '#52c41a',
+                  color: 'white',
+                  width: '100%',
+                }}
+              >
+                {table.status === 'OCCUPIED' ? 'Mark as Available' : 'Mark as Occupied'}
+              </Button>
+            
+              {/* Button 2: Delete Table */}
+              <Popconfirm
+                title="Are you sure to delete this table?"
+                onConfirm={() => handleDeleteTable(table.id)}
+                okText="Yes"
+                cancelText="No"
+              >
                 <Button
-                  shape="circle"
-                  size="large"
-                  style={{ backgroundColor: table.status === 'OCCUPIED' ? '#ff4d4f' : '#52c41a', color: 'white' }}
-                  onClick={() => handleTableSelect(table)}
+                  danger
+                  icon={<DeleteOutlined />}
+                  style={{ width: '100%' }}
                 >
-                  T{table.number}
-                </Button>
-                <Button
-                  type="primary"
-                  onClick={() => handleUpdateTableStatus(table.id, table.status)}
-                  style={{ marginTop: '5px', backgroundColor: table.status === 'OCCUPIED' ? '#ff4d4f' : '#52c41a', color: 'white' }}
-                >
-                  {table.status === 'OCCUPIED' ? 'Mark as Available' : 'Mark as Occupied'}
-                </Button>
-                <Popconfirm
-                  title="Are you sure to delete this table?"
-                  onConfirm={() => handleDeleteTable(table.id)}
-                  okText="Yes"
-                  cancelText="No"
-                >
-                  <Button danger icon={<DeleteOutlined />} />
-                </Popconfirm>
-              </Col>
+                 </Button>
+              </Popconfirm>
+            </Col>
+            
             ))}
           </Row>
         </Card>

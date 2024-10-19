@@ -4,12 +4,14 @@ import { NavLink, useLocation } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
 
 function Sidenav({ color }) {
   const { pathname } = useLocation();
   const page = pathname.replace("/", "");
   const [decodedToken, setDecodedToken] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const history = useHistory();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -278,6 +280,29 @@ function Sidenav({ color }) {
       />
     </svg>,
   ];
+  const logout = [
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      key={0}
+    >
+      <path
+        d="M10 4C10 3.44772 10.4477 3 11 3H17C17.5523 3 18 3.44772 18 4V16C18 16.5523 17.5523 17 17 17H11C10.4477 17 10 16.5523 10 16V14H8V17C8 18.1046 8.89543 19 10 19H17C18.1046 19 19 18.1046 19 17V4C19 3.44772 18.1046 3 17 3H10C10.4477 3 10 3.44772 10 4Z"
+        fill={color}
+      />
+      <path
+        d="M13.7071 10.7071L11.4142 8.41421L11.7071 8.70711H6C5.44772 8.70711 5 9.15477 5 9.70711C5 10.2594 5.44772 10.7071 6 10.7071H11.7071L13.7071 12.7071C13.9024 12.9024 14.2676 12.9024 14.4629 12.7071C14.6582 12.5118 14.6582 12.1464 14.4629 11.9511L13.7071 10.7071Z"
+        fill={color}
+      />
+    </svg>,
+  ];
+  const signOut = () =>{
+    localStorage.removeItem('token')
+    window.location.href ="/sign-in"; 
+  }
   return (
     <>
       <div className="brand">
@@ -285,6 +310,7 @@ function Sidenav({ color }) {
         <span>CoffeEase POS</span>
       </div>
       <hr />
+      <div className=" " style={{  height: "100vh"}}>
       <Menu theme="light" mode="inline">
         <Menu.Item key="1">
           <NavLink to="/dashboard">
@@ -413,6 +439,11 @@ function Sidenav({ color }) {
        </>
        }
       </Menu>
+      <div className="logout-container" onClick={signOut}>
+        <span className="icon">{logout}</span>
+        <span className="label">Log Out</span>
+      </div>
+    </div>
       
     </>
   );

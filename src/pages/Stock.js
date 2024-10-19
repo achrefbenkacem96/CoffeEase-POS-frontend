@@ -76,9 +76,15 @@ const Stock = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
+  data.stocks.map((stock, index) => {
+   if(stock.quantity < 20){
+    message.error(stock.product.name + " alert stock bas");
+   }
+  }
+)
   // Mapping des données avec une clé unique
   const stockData = data.stocks.map((stock, index) => ({
-    key: stock.id || index, // Utiliser stock.id, sinon l'index pour garantir une clé unique
+    key: stock.id || index,  
     ...stock,
   }));
 

@@ -42,7 +42,8 @@ export default function SignIn() {
         if (result.data?.login?.access_token) {
           localStorage.setItem("token", result.data.login.access_token);
           message.success("Login successful! Redirecting to the dashboard..."); // Message de succès
-          history.push("/dashboard"); // Redirection vers le tableau de bord
+          // history.push("/dashboard"); 
+          window.location.href = "/dashboard"
         }
       })
       .catch((err) => {

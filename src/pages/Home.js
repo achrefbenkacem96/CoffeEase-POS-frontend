@@ -83,24 +83,39 @@ function Home() {
         <Col xs={24}>
           <Title level={3}>Tableau de bord - Résumé des performances</Title>
         </Col>
-        <Col xs={24} sm={24} md={8}>
+        <Col xs={24} sm={24} md={24}>
           <SummaryCards />
         </Col>
       </Row>
 
       {/* Section des boutons pour générer les rapports */}
-      <Row gutter={[24, 16]} style={{ marginTop: '20px' }}>
-        <Col xs={24} sm={24} md={8}>
+      <Row gutter={[24, 24]} style={{ marginTop: '20px' }}>
+        <Col xs={24} sm={24} md={6}>
           <Button type="primary" block onClick={() => generateFinancialReport()}>
             Générer Rapport Financier
           </Button>
         </Col>
-        <Col xs={24} sm={24} md={8}>
+        <Col xs={24} sm={24} md={6}>
           <Button type="primary" block onClick={() => generateSalesReport()}>
             Générer Rapport des Ventes
           </Button>
         </Col>
-        <Col xs={24} sm={24} md={8}>
+        <Col xs={24} sm={24} md={6}>
+          <Button
+            type="primary"
+            block
+            onClick={() => {
+              if (selectedProductId) {
+                generateStockReport();
+              } else {
+                message.error('Veuillez sélectionner un produit.');
+              }
+            }}
+          >
+            Générer Rapport de Stock
+          </Button>
+        </Col>
+        <Col xs={24} sm={24} md={6}>
           {/* Sélecteur pour choisir un produit avant de générer le rapport de stock */}
           <Select
             style={{ width: '100%' }}
@@ -116,32 +131,16 @@ function Home() {
         </Col>
       </Row>
 
-      <Row gutter={[24, 16]} style={{ marginTop: '20px' }}>
-        <Col xs={24} sm={24} md={8}>
-          <Button
-            type="primary"
-            block
-            onClick={() => {
-              if (selectedProductId) {
-                generateStockReport();
-              } else {
-                message.error('Veuillez sélectionner un produit.');
-              }
-            }}
-          >
-            Générer Rapport de Stock
-          </Button>
-        </Col>
-      </Row>
+     
 
       {/* Section des rapports */}
       <Row gutter={[24, 0]} style={{ marginTop: '20px' }}>
-        <Col xs={24} sm={24} md={12} className="mb-24">
+        <Col xs={24} sm={24} md={10} className="mb-24">
           <Card bordered={false} className="criclebox h-full">
             <SalesReport />
           </Card>
         </Col>
-        <Col xs={24} sm={24} md={12} className="mb-24">
+        <Col xs={24} sm={24} md={14} className="mb-24">
           <Card bordered={false} className="criclebox h-full">
             <StockReport />
           </Card>

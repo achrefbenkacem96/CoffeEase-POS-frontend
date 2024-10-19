@@ -34,6 +34,9 @@ const StockReport = () => {
     // Filtrer par plage de dates
     if (dateRange && dateRange.length === 2) {
       const [startDate, endDate] = dateRange;
+      console.log("🚀 ~ applyFilters ~ dateRange:", dateRange)
+      console.log("🚀 ~ applyFilters ~ endDate:", endDate)
+      console.log("🚀 ~ applyFilters ~ startDate:", startDate)
       reports = reports.filter(report => moment(report.createdAt).isBetween(startDate, endDate, null, '[]'));
     }
 
@@ -44,8 +47,9 @@ const StockReport = () => {
     setSelectedProduct(value);
   };
 
-  const handleDateChange = (dates) => {
-    setDateRange(dates);
+  const handleDateChange = (dates, dateString) => {
+ 
+    setDateRange(dateString);
   };
 
   if (loading || productsLoading) return <p>Chargement des données...</p>;
@@ -75,7 +79,7 @@ const StockReport = () => {
           </Select>
         </Col>
         <Col xs={24} sm={12} md={8}>
-          <RangePicker onChange={handleDateChange} style={{ width: '100%' }} />
+          <RangePicker onChange={handleDateChange} format="YYYY-MM-DD" style={{ width: '100%' }} />
         </Col>
         <Col xs={24} sm={24} md={8}>
           <Button type="primary" block onClick={applyFilters}>

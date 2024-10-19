@@ -95,8 +95,8 @@ export const DELETE_ORDER = gql`
 `;
 
 export const GET_ORDERS_BY_TABLE = gql`
-  query GetOrdersByTable($tableId: Int!) {
-    orders(tableId: $tableId) {
+  query GetOrdersByTable($tableId: Int!, $status: String) { 
+    orders(tableId: $tableId, status: $status) {
       id
       product {
         id
