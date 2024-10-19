@@ -49,6 +49,11 @@ const Stock = () => {
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
+      render: (quantity) => (
+        <span style={{ color: quantity < 10 ? 'red' : 'inherit' }}>
+          {quantity} {quantity < 10 && ' (Low Stock)'}
+        </span>
+      ),
     },
     {
       title: 'Movement',
@@ -59,14 +64,18 @@ const Stock = () => {
       title: 'Action',
       render: (_, stock) => (
         <Space size="middle">
-          <a onClick={() => showUpdateModal(stock)}>Update</a>
+          <Button type="link" onClick={() => showUpdateModal(stock)}>
+            Update
+          </Button>
           <Popconfirm
             title="Are you sure to delete this stock?"
             onConfirm={() => handleDelete(stock.id)}
             okText="Yes"
             cancelText="No"
           >
-            <a style={{ color: 'red' }}>Delete</a>
+            <Button type="link" danger>
+              Delete
+            </Button>
           </Popconfirm>
         </Space>
       ),
@@ -76,15 +85,15 @@ const Stock = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
-  data.stocks.map((stock, index) => {
-   if(stock.quantity < 20){
-    message.error(stock.product.name + " alert stock bas");
-   }
-  }
-)
-  // Mapping des données avec une clé unique
-  const stockData = data.stocks.map((stock, index) => ({
-    key: stock.id || index,  
+  // Vérification pour afficher un message d'alerte pour les produits avec un stock bas (< 10)
+  data.stocks.forEach((stock) => {
+    if (stock.quantity < 10) {
+      message.warning(`${stock.product.name} has low stock!`);
+    }
+  });
+
+  const stockData = data.stocks.map((stock) => ({
+    key: stock.id,
     ...stock,
   }));
 
@@ -103,7 +112,12 @@ const Stock = () => {
             }
           >
             <CreateStock open={open} setOpen={setOpen} handleCancel={handleCancel} />
-            <UpdateStock open={updateOpen} setOpen={setUpdateOpen} handleCancel={handleCancel} stock={selectedStock} />
+            <UpdateStock
+              open={updateOpen}
+              setOpen={setUpdateOpen}
+              handleCancel={handleCancel}
+              stock={selectedStock}
+            />
             <Table columns={columns} dataSource={stockData} pagination={false} />
           </Card>
         </Col>
